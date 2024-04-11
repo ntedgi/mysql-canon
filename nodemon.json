@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    "*.test.js",
+    "node_modules/**/node_modules",
+    ".git",
+    "logs/*",
+    "node_modules/*",
+    "*.yml",
+    "*.log"
+  ],
+  "verbose": true,
+  "delay": 1000
+}
