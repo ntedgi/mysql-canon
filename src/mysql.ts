@@ -19,8 +19,6 @@ const dbsRegion = process?.argv[2] === "eu" ? dbs.eu : dbs.us;
 
 const connectionString = {
   host: process?.argv[3] === "row" ? dbsRegion.row : dbsRegion.mixed,
-  user: "app",
-  password: "g@nDur@$",
   connectTimeout: 30000,
   waitForConnections: true
 };
