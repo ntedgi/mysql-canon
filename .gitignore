@@ -1,3 +1,19 @@
-node_modules
-*.log
-dist
+# Node Modules
+node_modules/
+
+# IDE project configuration files
+.idea/
+
+logs/
+dist/
+coverage/
+.cache-require-paths.json
+config/local.json
+config/tracking-services.js.backup
+config/local-development-e2e-tests.json
+
+tictac/config/local.json
+
+launch.json
+spec-helper.js
+nodemon.json
