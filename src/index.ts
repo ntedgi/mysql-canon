@@ -29,7 +29,7 @@ WHERE mobile_application_id in (560385, 710389, 560385,681203,409067,4184,583967
         eventEmitter.emit('success', {type: 'updateAssets', time: Date.now()-startTime});
         writeLogToFile('done update assets');
     } catch (e) {
-        writeLogToFile('got exception updateAssets');
+        writeLogToFile(`got exception updateAssets=>${JSON.stringify(e)}`);
     }
 }
 
@@ -59,7 +59,7 @@ async function updateBids() {
         eventEmitter.emit('success', {type: 'updateBids', time: Date.now()-startTime});
         writeLogToFile('done update bids');
     } catch (e) {
-        writeLogToFile('got exception on updateBids');
+        writeLogToFile(`got exception on updateBids=>${JSON.stringify(e)}`);
     }
 }
 
@@ -71,7 +71,7 @@ async function selectCampaign() {
         eventEmitter.emit('success', {type: 'selectCampaign', time: Date.now()-startTime});
         writeLogToFile('done select campaigns');
     } catch (e) {
-        writeLogToFile('got exception on selectCampaign');
+        writeLogToFile(`got exception on selectCampaign=>${JSON.stringify(e)}`);
     }
 }
 
@@ -83,7 +83,7 @@ async function selectCampaigns() {
         eventEmitter.emit('success', {type: 'selectCampaigns', time: Date.now()-startTime});
         writeLogToFile('done select campaigns');
     } catch (e) {
-        writeLogToFile('got exception on selectCampaign');
+        writeLogToFile(`got exception on selectCampaign=>${JSON.stringify(e)}`);
     }
 }
 
@@ -103,7 +103,7 @@ async function insertCampaigns() {
         eventEmitter.emit('success', {type: 'insertCampaigns', time: Date.now()-startTime});
         writeLogToFile('done insert campaign');
     } catch (e) {
-        writeLogToFile('got exception on insertCampaigns');
+        writeLogToFile(`got exception on insertCampaigns=>${JSON.stringify(e)}`);
         console.log(e)
     }
 }
@@ -113,21 +113,63 @@ function sleep(ms: number): Promise<void> {
 }
 
 
+
+// Fisher-Yates shuffle function
+function shuffle(array) {
+    let currentIndex = array.length, temporaryValue, randomIndex;
+  
+    // While there remain elements to shuffle...
+    while (currentIndex !== 0) {
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+  
+    return array;
+  }
+  
+function shuffleWithSeed(array, seed) {
+    // Save the current state of Math.random
+    const oldRandom = Math.random;
+  
+    // Create a new random number generator with the given seed
+    Math.random = () => {
+      const x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    };
+  
+    // Shuffle the array
+    const shuffledArray = shuffle(array);
+  
+    // Restore the old Math.random
+    Math.random = oldRandom;
+  
+    return shuffledArray;
+  }
+  
+
+const seed = 123; 
+
+
 (async () => {
     eventEmitter.emit('start');
     setInterval(() => {
         eventEmitter.emit('log');
-        
     },5000)
     for (let i = 0; i < 7; i++) {
-        const promiseArr=[
+        const shuffledPromiseArr = shuffleWithSeed([
             ...invokeAsyncFunctionTimes(insertCampaigns, 50),
             ...invokeAsyncFunctionTimes(selectCampaigns, 20),
             ...invokeAsyncFunctionTimes(selectCampaign, 60),
             ...invokeAsyncFunctionTimes(updateBids, 60),
             ...invokeAsyncFunctionTimes(updateAssets, 60)
-        ].map(fn=>throat(fn));
-        await Promise.all(promiseArr);
+        ], seed).map(fn=>throat(fn));
+        await Promise.all(shuffledPromiseArr);
         writeLogToFile(`done ${i} iteration`);
         console.log(`done ${i} iteration`);
         if(i===0) {
